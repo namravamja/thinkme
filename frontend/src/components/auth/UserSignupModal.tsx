@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
+import { useAuthModal } from "@/components/auth/auth-modal";
 
 interface UserSignupModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export default function UserSignupModal({
   onSignup,
   isLoading,
 }: UserSignupModalProps) {
+  const { openUserLogin } = useAuthModal();
   const [signupData, setSignupData] = useState({
     name: "",
     email: "",
@@ -48,6 +50,11 @@ export default function UserSignupModal({
     }
   };
 
+  const handleSignInClick = () => {
+    handleClose(); // Close signup modal first
+    openUserLogin(); // Then open login modal
+  };
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -61,16 +68,21 @@ export default function UserSignupModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md min-h-[500px]">
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl text-center">
-            Sign Up
+            Join ThinkMe
           </DialogTitle>
+          <p className="text-sm text-muted-foreground text-center mt-2">
+            Create your account to start sharing your thoughts
+          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="signup-name">Name</Label>
+        <form onSubmit={handleSignup} className="space-y-6 mt-6">
+          <div className="space-y-3">
+            <Label htmlFor="signup-name" className="text-sm font-medium">
+              Name
+            </Label>
             <Input
               id="signup-name"
               type="text"
@@ -81,10 +93,13 @@ export default function UserSignupModal({
               placeholder="Enter your name"
               required
               disabled={isLoading}
+              className="h-11"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="signup-email">Email</Label>
+          <div className="space-y-3">
+            <Label htmlFor="signup-email" className="text-sm font-medium">
+              Email
+            </Label>
             <Input
               id="signup-email"
               type="email"
@@ -98,10 +113,13 @@ export default function UserSignupModal({
               placeholder="Enter your email"
               required
               disabled={isLoading}
+              className="h-11"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="signup-password">Password</Label>
+          <div className="space-y-3">
+            <Label htmlFor="signup-password" className="text-sm font-medium">
+              Password
+            </Label>
             <Input
               id="signup-password"
               type="password"
@@ -115,11 +133,26 @@ export default function UserSignupModal({
               placeholder="Create a password"
               required
               disabled={isLoading}
+              className="h-11"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating account..." : "Create account"}
-          </Button>
+          <div className="pt-4">
+            <Button type="submit" className="w-full h-11" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Create account"}
+            </Button>
+          </div>
+          <div className="text-center pt-2">
+            <p className="text-xs text-muted-foreground">
+              Already have an account?
+              <button
+                type="button"
+                onClick={handleSignInClick}
+                className="ml-1 text-primary hover:underline"
+              >
+                Sign in here
+              </button>
+            </p>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

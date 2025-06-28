@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BlogCard } from "@/app/blogs/components/blog-card";
 import { Pagination } from "@/components/common/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +22,7 @@ export function BlogList({
   userId,
   limit = 10,
 }: BlogListProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<{
     blogs: any[];
@@ -28,6 +30,10 @@ export function BlogList({
     page: number;
     totalPages: number;
   } | null>(null);
+
+  const handleBlogClick = (blogId: string) => {
+    router.push(`/my-blogs/${blogId}`);
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -110,7 +116,13 @@ export function BlogList({
     <div className="space-y-8">
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         {data.blogs.map((blog) => (
-          <BlogCard key={blog.id} blog={blog} />
+          <div
+            key={blog.id}
+            onClick={() => handleBlogClick(blog.id)}
+            className="cursor-pointer transform transition-transform hover:scale-105"
+          >
+            <BlogCard blog={blog} />
+          </div>
         ))}
       </div>
 

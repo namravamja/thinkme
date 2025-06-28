@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import { useAuthModal } from "@/components/auth/auth-modal";
 import { useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
@@ -26,11 +26,12 @@ import {
   Trash2,
   Check,
   Camera,
+  LogIn,
 } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
-  const router = useRouter();
+  const { openUserLogin } = useAuthModal();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -63,9 +64,6 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
     if (user) {
       const userData = {
         name: user.name || "",
@@ -80,7 +78,7 @@ export default function ProfilePage() {
       setOriginalData(userData);
       setImagePreview(user.avatar || null);
     }
-  }, [user, isLoading, router]);
+  }, [user]);
 
   interface ImageUploadEvent extends React.ChangeEvent<HTMLInputElement> {}
 
@@ -166,6 +164,33 @@ export default function ProfilePage() {
     setFormData({ ...formData, [field]: value });
   };
 
+  // Show login prompt when not authenticated
+  if (!isLoading && !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+            <div className="text-center space-y-4">
+              <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center mx-auto">
+                <LogIn className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h1 className="text-3xl font-bold">Access Your Profile</h1>
+              <p className="text-muted-foreground text-lg max-w-md">
+                Sign in to view and edit your profile information, update your
+                bio, and manage your social links.
+              </p>
+            </div>
+            <Button onClick={openUserLogin} size="lg" className="px-8">
+              <LogIn className="h-4 w-4 mr-2" />
+              Sign In to Continue
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -199,10 +224,6 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -222,11 +243,11 @@ export default function ProfilePage() {
                     onClick={isEditing ? triggerImageUpload : undefined}
                   >
                     <AvatarImage
-                      src={imagePreview || user.avatar || "/placeholder.svg"}
-                      alt={user.name}
+                      src={imagePreview || user?.avatar || "/placeholder.svg"}
+                      alt={user?.name}
                     />
                     <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                      {user.name.charAt(0).toUpperCase()}
+                      {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useAuthModal } from "@/components/auth/auth-modal"; 
 import { BlogForm } from "@/app/blogs/components/blog-form";
 import { Navbar } from "@/components/navbar/navbar";
 import { useRouter } from "next/navigation";
@@ -17,15 +18,17 @@ interface EditBlogPageProps {
 
 export default function EditBlogPage({ params }: EditBlogPageProps) {
   const { user, isLoading: authLoading } = useAuth();
+  const { openUserLogin } = useAuthModal(); // Add this hook
   const router = useRouter();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [blogLoading, setBlogLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login");
+      // Open login modal instead of redirecting
+      openUserLogin();
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, openUserLogin]);
 
   useEffect(() => {
     // Simulate API call to get blog
@@ -61,8 +64,40 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
     );
   }
 
-  if (!user || !blog) {
-    return null;
+  // Show the page content even if user is not logged in
+  // The auth modal will handle the login flow
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">
+              Please log in to edit this blog
+            </h1>
+            <p className="text-muted-foreground">
+              You need to be logged in to edit blog posts.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Blog not found</h1>
+            <p className="text-muted-foreground">
+              The blog post you're looking for doesn't exist.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

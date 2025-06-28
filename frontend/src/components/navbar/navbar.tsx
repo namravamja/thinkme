@@ -7,10 +7,12 @@ import { ThemeToggle } from "@/components/common/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PenTool, Menu, X, BookOpen, LogOut, User, LogIn } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useAuthModal } from "@/components/auth/auth-modal";
 import toast from "react-hot-toast";
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { openUserLogin } = useAuthModal();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -18,9 +20,17 @@ export function Navbar() {
     try {
       await logout();
       toast.success("Logged out successfully");
+      setIsDropdownOpen(false);
+      setIsMobileMenuOpen(false);
     } catch (error) {
       toast.error("Error logging out");
     }
+  };
+
+  const handleSignIn = () => {
+    openUserLogin();
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -110,6 +120,7 @@ export function Navbar() {
                         <Link
                           href="/create"
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent/50 transition-colors cursor-pointer w-full"
+                          onClick={() => setIsDropdownOpen(false)}
                         >
                           <PenTool className="h-4 w-4 text-blue-500" />
                           <span className="font-medium">Write Blog</span>
@@ -117,6 +128,7 @@ export function Navbar() {
                         <Link
                           href="/my-blogs"
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent/50 transition-colors cursor-pointer w-full"
+                          onClick={() => setIsDropdownOpen(false)}
                         >
                           <BookOpen className="h-4 w-4 text-green-500" />
                           <span className="font-medium">My Blogs</span>
@@ -124,6 +136,7 @@ export function Navbar() {
                         <Link
                           href="/profile"
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent/50 transition-colors cursor-pointer w-full"
+                          onClick={() => setIsDropdownOpen(false)}
                         >
                           <User className="h-4 w-4 text-purple-500" />
                           <span className="font-medium">Profile</span>
@@ -160,16 +173,17 @@ export function Navbar() {
                         </div>
                       </div>
                       <div className="p-2">
-                        <Link
-                          href="/login"
+                        <button
+                          onClick={handleSignIn}
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-950/20 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer w-full"
                         >
                           <LogIn className="h-4 w-4" />
                           <span className="font-medium">Sign In</span>
-                        </Link>
+                        </button>
                         <Link
                           href="/blogs"
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent/50 transition-colors cursor-pointer w-full"
+                          onClick={() => setIsDropdownOpen(false)}
                         >
                           <BookOpen className="h-4 w-4 text-green-500" />
                           <span className="font-medium">Browse Blogs</span>
@@ -285,14 +299,12 @@ export function Navbar() {
                     Welcome, Guest! Sign in to get started.
                   </div>
                   <Button
-                    asChild
                     className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 transition-colors"
                     size="sm"
+                    onClick={handleSignIn}
                   >
-                    <Link href="/login">
-                      <LogIn className="h-4 w-4 mr-3" />
-                      Sign In
-                    </Link>
+                    <LogIn className="h-4 w-4 mr-3" />
+                    Sign In
                   </Button>
                   <Button
                     asChild
