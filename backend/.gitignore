@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+*.pyo
+*.pyd
+
+# Virtual Environments
+.env/
+.venv/
+env/
+venv/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Byte-compiled / cache
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.pytest_cache/
+.cache/
+
+# Logs and local config
+*.log
+*.sqlite3
+*.db
+*.bak
+*.pid
+
+# Environment variables / secrets
+.env
+.env.*
+
+# Alembic
+alembic/versions/*.pyc
+alembic/versions/*.pyo
+alembic/versions/__pycache__/
+alembic/versions/*.bak
+
+# If using Docker
+*.pid
+*.tar
+*.gz
+*.img
+*.container
+docker-compose.override.yml
+
+# Mypy / Coverage / Lint tools
+.mypy_cache/
+coverage.xml
+htmlcov/
+.coverage
+.pytest_cache/
+
+# FastAPI static/media files (optional)
+staticfiles/
+mediafiles/
+
+# If using Jupyter
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# Redis dump (if any)
+dump.rdb
