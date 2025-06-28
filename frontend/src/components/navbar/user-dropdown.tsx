@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/auth-context";
 import type { User as UserType } from "@/types";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -20,15 +19,9 @@ interface UserDropdownProps {
 }
 
 export function UserDropdown({ user }: UserDropdownProps) {
-  const { logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success("Logged out successfully");
-    } catch (error) {
-      toast.error("Error logging out");
-    }
+  // No auth: demo only, no logout logic
+  const handleLogout = () => {
+    toast.success("Logged out (demo)");
   };
 
   return (

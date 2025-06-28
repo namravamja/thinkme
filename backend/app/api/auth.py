@@ -40,8 +40,18 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
+
     token = create_access_token(user.id)
-    response.set_cookie("access_token", token, httponly=True)
+
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        max_age=60 * 60 * 24,
+        secure=False,  # ONLY for dev over HTTP
+        samesite="Lax",
+    )
+
     return {"message": "Login successful"}
 
 

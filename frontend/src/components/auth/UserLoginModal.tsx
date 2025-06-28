@@ -11,43 +11,40 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import toast from "react-hot-toast";
-import { useAuthModal } from "@/components/auth/auth-modal"; // Import the hook
+// import toast from "react-hot-toast";
+// import { useLoginMutation } from "@/services/api/authApi";
 
 interface UserLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, password: string) => Promise<void>;
-  isLoading: boolean;
+  onLogin?: (email: string, password: string) => Promise<void>; // Optional for backward compatibility
+  isLoading?: boolean; // Optional for backward compatibility
 }
 
 export default function UserLoginModal({
   isOpen,
   onClose,
-  onLogin,
-  isLoading,
+  onLogin, // Keep for backward compatibility but won't be used
+  isLoading: externalIsLoading, // Rename to avoid conflict
 }: UserLoginModalProps) {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const { openUserSignup } = useAuthModal(); // Get the openUserSignup function
+  // const { openUserSignup } = useAuthModal();
+  // const [login, { isLoading }] = useLoginMutation();
+  const isLoading = false;
 
   const handleClose = () => {
     onClose();
     setLoginData({ email: "", password: "" });
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await onLogin(loginData.email, loginData.password);
-      toast.success("Welcome back!");
-      handleClose();
-    } catch (error) {
-      toast.error("Login failed. Please try again.");
-    }
+    // Demo: just close modal
+    handleClose();
   };
 
   const handleSignupClick = () => {
-    openUserSignup(); // This will close login modal and open signup modal
+    handleClose();
   };
 
   // Handle keyboard shortcuts

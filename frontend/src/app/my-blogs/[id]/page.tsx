@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
-import { useAuthModal } from "@/components/auth/auth-modal";
 import { Navbar } from "@/components/navbar/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +48,6 @@ const categories = [
 export default function MyBlogDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, isLoading: authLoading } = useAuth();
-  const { openUserLogin } = useAuthModal();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -69,24 +65,12 @@ export default function MyBlogDetailPage() {
   const blogId = params?.id as string;
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      // Open login modal instead of redirecting
-      openUserLogin();
-      return;
-    }
-
-    if (blogId && user) {
+    if (blogId) {
       // Simulate API call to fetch blog
       const timer = setTimeout(() => {
         const foundBlog = mockBlogs.find((b) => b.id === blogId);
 
         if (!foundBlog) {
-          router.push("/my-blogs");
-          return;
-        }
-
-        // Check if user owns this blog
-        if (foundBlog.author.id !== user.id) {
           router.push("/my-blogs");
           return;
         }
@@ -103,7 +87,7 @@ export default function MyBlogDetailPage() {
 
       return () => clearTimeout(timer);
     }
-  }, [blogId, user, authLoading, router, openUserLogin]);
+  }, [blogId, router]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -158,32 +142,12 @@ export default function MyBlogDetailPage() {
     });
   };
 
-  if (authLoading || isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-7xl py-8">
           <div className="text-center">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show message when user is not authenticated
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-4xl py-8">
-          <div className="text-center">
-            <h1 className="font-serif text-3xl font-bold mb-4">
-              Access Required
-            </h1>
-            <p className="text-muted-foreground mb-6">
-              Please log in to view your blog details
-            </p>
-            <Button onClick={openUserLogin}>Log in to continue</Button>
-          </div>
         </div>
       </div>
     );
@@ -199,8 +163,7 @@ export default function MyBlogDetailPage() {
               Blog not found
             </h1>
             <p className="text-muted-foreground mb-6">
-              The blog post you're looking for doesn't exist or you don't have
-              permission to view it.
+              The blog post you're looking for doesn't exist.
             </p>
             <Button asChild>
               <Link href="/my-blogs">

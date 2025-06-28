@@ -11,48 +11,42 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import toast from "react-hot-toast";
-import { useAuthModal } from "@/components/auth/auth-modal";
+// import toast from "react-hot-toast";
+// import { useSignupMutation } from "@/services/api/authApi";
 
 interface UserSignupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSignup: (name: string, email: string, password: string) => Promise<void>;
-  isLoading: boolean;
+  onSignup?: (name: string, email: string, password: string) => Promise<void>; // Optional for backward compatibility
+  isLoading?: boolean; // Optional for backward compatibility
 }
 
 export default function UserSignupModal({
   isOpen,
   onClose,
-  onSignup,
-  isLoading,
+  onSignup, // Keep for backward compatibility but won't be used
+  isLoading: externalIsLoading, // Rename to avoid conflict
 }: UserSignupModalProps) {
-  const { openUserLogin } = useAuthModal();
   const [signupData, setSignupData] = useState({
     name: "",
     email: "",
     password: "",
   });
+  const isLoading = false;
 
   const handleClose = () => {
     onClose();
     setSignupData({ name: "", email: "", password: "" });
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await onSignup(signupData.name, signupData.email, signupData.password);
-      toast.success("Account created successfully!");
-      handleClose();
-    } catch (error) {
-      toast.error("Signup failed. Please try again.");
-    }
+    // Demo: just close modal
+    handleClose();
   };
 
   const handleSignInClick = () => {
-    handleClose(); // Close signup modal first
-    openUserLogin(); // Then open login modal
+    handleClose();
   };
 
   // Handle keyboard shortcuts

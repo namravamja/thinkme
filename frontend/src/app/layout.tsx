@@ -2,9 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/provider/providers";
-import { AuthProvider } from "@/contexts/auth-context";
-import { AuthModalProviderWrapper } from "@/components/auth/AuthModalProviderWrapper";
+import StoreProvider from "@/lib/store/provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,11 +29,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} font-sans antialiased`}
       >
-        <AuthProvider>
-          <AuthModalProviderWrapper>
-            <Providers>{children}</Providers>
-          </AuthModalProviderWrapper>
-        </AuthProvider>
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );

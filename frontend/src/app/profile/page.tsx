@@ -8,10 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/contexts/auth-context";
-import { useAuthModal } from "@/components/auth/auth-modal";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import toast from "react-hot-toast";
 import {
   Mail,
@@ -30,55 +27,30 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth();
-  const { openUserLogin } = useAuthModal();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    bio: "",
-    website: "",
-    twitter: "",
-    github: "",
-    linkedin: "",
+    name: "John Doe",
+    email: "john@example.com",
+    bio: "Passionate writer and tech enthusiast. Love sharing insights about web development, design, and the future of technology.",
+    website: "https://johndoe.dev",
+    twitter: "@johndoe",
+    github: "johndoe",
+    linkedin: "johndoe",
   });
-  const [originalData, setOriginalData] = useState<{
-    name: string;
-    email: string;
-    bio: string;
-    website: string;
-    twitter: string;
-    github: string;
-    linkedin: string;
-  }>({
-    name: "",
-    email: "",
-    bio: "",
-    website: "",
-    twitter: "",
-    github: "",
-    linkedin: "",
+  const [originalData, setOriginalData] = useState({
+    name: "John Doe",
+    email: "john@example.com",
+    bio: "Passionate writer and tech enthusiast. Love sharing insights about web development, design, and the future of technology.",
+    website: "https://johndoe.dev",
+    twitter: "@johndoe",
+    github: "johndoe",
+    linkedin: "johndoe",
   });
 
-  useEffect(() => {
-    if (user) {
-      const userData = {
-        name: user.name || "",
-        email: user.email || "",
-        bio: "Passionate writer and tech enthusiast. Love sharing insights about web development, design, and the future of technology.",
-        website: "https://johndoe.dev",
-        twitter: "@johndoe",
-        github: "johndoe",
-        linkedin: "johndoe",
-      };
-      setFormData(userData);
-      setOriginalData(userData);
-      setImagePreview(user.avatar || null);
-    }
-  }, [user]);
+  // No auth: use default profile data
 
   interface ImageUploadEvent extends React.ChangeEvent<HTMLInputElement> {}
 
@@ -131,7 +103,7 @@ export default function ProfilePage() {
 
   const handleRemoveImage = () => {
     setProfileImage(null);
-    setImagePreview(user?.avatar || null);
+    setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -152,7 +124,7 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({ ...originalData });
-    setImagePreview(user?.avatar || null);
+    setImagePreview(null);
     setProfileImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -163,66 +135,6 @@ export default function ProfilePage() {
   const handleFieldChange = (field: keyof typeof formData, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
-
-  // Show login prompt when not authenticated
-  if (!isLoading && !user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-            <div className="text-center space-y-4">
-              <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center mx-auto">
-                <LogIn className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <h1 className="text-3xl font-bold">Access Your Profile</h1>
-              <p className="text-muted-foreground text-lg max-w-md">
-                Sign in to view and edit your profile information, update your
-                bio, and manage your social links.
-              </p>
-            </div>
-            <Button onClick={openUserLogin} size="lg" className="px-8">
-              <LogIn className="h-4 w-4 mr-2" />
-              Sign In to Continue
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="space-y-8">
-            {/* Profile Header Skeleton */}
-            <Card>
-              <CardContent className="p-8">
-                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
-                  <Skeleton className="h-40 w-40 rounded-full" />
-                  <div className="flex-1 text-center lg:text-left space-y-4">
-                    <div className="space-y-3">
-                      <Skeleton className="h-10 w-64 mx-auto lg:mx-0" />
-                      <Skeleton className="h-5 w-80 mx-auto lg:mx-0" />
-                    </div>
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-5 w-48 mx-auto lg:mx-0" />
-                    <div className="flex justify-center lg:justify-start gap-3">
-                      <Skeleton className="h-9 w-28" />
-                      <Skeleton className="h-9 w-28" />
-                      <Skeleton className="h-9 w-28" />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,11 +155,11 @@ export default function ProfilePage() {
                     onClick={isEditing ? triggerImageUpload : undefined}
                   >
                     <AvatarImage
-                      src={imagePreview || user?.avatar || "/placeholder.svg"}
-                      alt={user?.name}
+                      src={imagePreview || "/placeholder.svg"}
+                      alt={formData.name}
                     />
                     <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                      {user?.name?.charAt(0).toUpperCase()}
+                      {formData.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 

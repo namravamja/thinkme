@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/auth-context";
 import toast from "react-hot-toast";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -44,7 +43,6 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
   const [likesCount, setLikesCount] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -137,7 +135,8 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
     );
   }
 
-  const isAuthor = user?.id === blog.author.id;
+  // Auth removed: always allow edit/delete for demo
+  const isAuthor = true;
 
   return (
     <div className="min-h-screen bg-background">
