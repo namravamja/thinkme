@@ -1,19 +1,26 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const BASE_API_URL = "http://localhost:8000"; // adjust to your actual backend
+const BASE_API_URL = "http://localhost:8000";
 
 export const UserApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_API_URL}`, // assuming FastAPI router is mounted at /user
-    credentials: "include", // for cookies like access_token
+    baseUrl: `${BASE_API_URL}`,
+    credentials: "include",
   }),
   endpoints: (builder) => ({
-    // ✅ Get current user info from cookie token
     getCurrentUser: builder.query({
       query: () => "/me",
+    }),
+
+    updateUser: builder.mutation({
+      query: (formData) => ({
+        url: "/me/update",
+        method: "PUT",
+        body: formData,
+      }),
     }),
   }),
 });
 
-export const { useGetCurrentUserQuery } = UserApi;
+export const { useGetCurrentUserQuery, useUpdateUserMutation } = UserApi;

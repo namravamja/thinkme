@@ -17,9 +17,9 @@ export default function StoreProvider({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <Provider store={storeRef.current}>
         <Toaster
-          position="top-right"
+          position="bottom-right"
           toastOptions={{
-            duration: 4000,
+            duration: 3000,
             style: {
               background: "#faf8f5",
               color: "#8B4513",

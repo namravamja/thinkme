@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import json
-from json import JSONDecodeError
-
 from app.db.session import SessionLocal
 from app.db.models.blog import Blog
 from app.schemas.blog import BlogRead
 from app.core.security import decode_access_token
 from app.config.cloudinary import upload_image  # assumes you configured cloudinary here
+import random
 
 router = APIRouter()
 
@@ -20,6 +18,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_unique_blog_id(db: Session) -> int:
+    while True:
+        blog_id = random.randint(10**7, 10**8 - 1)
+        if not db.query(Blog).filter(Blog.id == blog_id).first():
+            return blog_id
 
 
 def get_current_user_id(request: Request):
@@ -44,8 +49,7 @@ def verify_blog_ownership(blog: Blog, user_id: int):
         )
 
 
-# ✅ Create blog
-@router.post("/", response_model=BlogRead)
+@router.post("/create", response_model=BlogRead)
 async def create_blog(
     title: str = Form(...),
     content: str = Form(...),
@@ -56,21 +60,20 @@ async def create_blog(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
-
-    # Validate image
     if image.content_type not in ["image/jpeg", "image/png", "image/webp"]:
         raise HTTPException(
             status_code=400, detail="Only JPEG, PNG or WEBP images are allowed"
         )
 
-    # Upload image
     try:
         image_url = upload_image(image.file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
 
-    # Create and save blog
+    blog_id = get_unique_blog_id(db)  # Generate unique 8-digit ID
+
     new_blog = Blog(
+        id=blog_id,
         title=title,
         content=content,
         excerpt=excerpt,
@@ -85,7 +88,7 @@ async def create_blog(
     return new_blog
 
 
-@router.put("/{blog_id}", response_model=BlogRead)
+@router.put("/update/{blog_id}", response_model=BlogRead)
 async def update_blog(
     blog_id: int,
     title: Optional[str] = Form(None),
@@ -126,8 +129,28 @@ async def update_blog(
     return blog
 
 
+@router.get("/get/{blog_id}", response_model=BlogRead)
+def get_blog_by_id(
+    blog_id: int,
+    db: Session = Depends(get_db),
+):
+    blog = get_blog_or_404(blog_id, db)
+    return blog
+
+
+@router.get("/my-blogs", response_model=List[BlogRead])
+def get_user_blogs(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user_id),
+):
+    blogs = (
+        db.query(Blog).filter(Blog.user_id == user_id).order_by(Blog.id.desc()).all()
+    )
+    return blogs
+
+
 # ✅ Delete blog
-@router.delete("/{blog_id}")
+@router.delete("/delete/{blog_id}")
 def delete_blog(
     blog_id: int,
     db: Session = Depends(get_db),

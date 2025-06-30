@@ -1,4 +1,4 @@
-import type { Blog, Comment, User } from "@/types"
+import type { Blog, Comment, User } from "@/types";
 
 export const mockUsers: User[] = [
   {
@@ -43,7 +43,7 @@ export const mockUsers: User[] = [
     avatar: "/placeholder.svg?height=40&width=40",
     createdAt: "2023-12-15T10:00:00Z",
   },
-]
+];
 
 export const mockBlogs: Blog[] = [
   {
@@ -79,7 +79,8 @@ Finally, the focus on web performance and Core Web Vitals continues to be crucia
   {
     id: "2",
     title: "Mastering Modern CSS: Grid, Flexbox, and Beyond",
-    excerpt: "A comprehensive guide to modern CSS layout techniques that every developer should know in 2024.",
+    excerpt:
+      "A comprehensive guide to modern CSS layout techniques that every developer should know in 2024.",
     content: `CSS has come a long way from the days of float-based layouts and clearfix hacks. Modern CSS provides powerful tools for creating complex, responsive layouts with ease.
 
 CSS Grid is perhaps the most powerful layout system available in CSS. It allows you to create two-dimensional layouts with precise control over both rows and columns. Unlike Flexbox, which is primarily one-dimensional, Grid excels at creating complex layouts where you need to control both axes.
@@ -110,7 +111,8 @@ Modern CSS also includes powerful features like CSS Houdini, which allows you to
   {
     id: "3",
     title: "Building Scalable React Applications: Best Practices",
-    excerpt: "Learn how to structure and organize React applications for long-term maintainability and scalability.",
+    excerpt:
+      "Learn how to structure and organize React applications for long-term maintainability and scalability.",
     content: `Building React applications that can scale with your team and requirements is both an art and a science. Here are the key principles and practices that will help you create maintainable React codebases.
 
 Component composition is at the heart of scalable React applications. Instead of building monolithic components, break them down into smaller, focused components that do one thing well. This makes your code more testable, reusable, and easier to understand.
@@ -175,7 +177,8 @@ Minimalist design doesn't mean boring design. You can still create engaging and 
   {
     id: "5",
     title: "Understanding Async/Await in JavaScript",
-    excerpt: "A deep dive into asynchronous JavaScript, from callbacks to promises to async/await syntax.",
+    excerpt:
+      "A deep dive into asynchronous JavaScript, from callbacks to promises to async/await syntax.",
     content: `Asynchronous programming is fundamental to JavaScript, but it can be one of the most challenging concepts for developers to master. Let's explore the evolution from callbacks to promises to async/await.
 
 JavaScript is single-threaded, which means it can only execute one piece of code at a time. However, many operations in web development are asynchronous—like fetching data from an API, reading files, or waiting for user input.
@@ -208,7 +211,8 @@ Modern JavaScript also includes features like Promise.all(), Promise.race(), and
   {
     id: "6",
     title: "Sustainable Web Design: Building for the Planet",
-    excerpt: "How web designers and developers can create more environmentally friendly digital experiences.",
+    excerpt:
+      "How web designers and developers can create more environmentally friendly digital experiences.",
     content: `The internet consumes a significant amount of energy, and as web professionals, we have a responsibility to consider the environmental impact of our digital creations. Sustainable web design is about creating websites that are not only user-friendly but also planet-friendly.
 
 The carbon footprint of the internet is substantial. Every website visit, every image loaded, and every video streamed contributes to energy consumption. Data centers, networks, and user devices all consume electricity, much of which still comes from fossil fuels.
@@ -241,7 +245,8 @@ Dark mode isn't just a design trend—it can also save energy, especially on OLE
   {
     id: "7",
     title: "The Rise of AI in Software Development",
-    excerpt: "How artificial intelligence is transforming the way we write, test, and deploy software.",
+    excerpt:
+      "How artificial intelligence is transforming the way we write, test, and deploy software.",
     content: `Artificial Intelligence is revolutionizing software development in ways we never imagined. From code generation to automated testing, AI tools are becoming indispensable parts of the modern developer's toolkit.
 
 GitHub Copilot has been a game-changer for many developers. This AI-powered code completion tool can suggest entire functions, help with boilerplate code, and even assist with complex algorithms. It's like having a pair programming partner that never gets tired.
@@ -306,7 +311,8 @@ Sleep hygiene is critical for cognitive function and overall health. Maintain a 
   {
     id: "9",
     title: "Building Your Personal Brand as a Developer",
-    excerpt: "Strategies for establishing yourself as a thought leader in the tech industry and advancing your career.",
+    excerpt:
+      "Strategies for establishing yourself as a thought leader in the tech industry and advancing your career.",
     content: `In today's competitive tech landscape, having strong technical skills isn't enough. Building a personal brand can set you apart from other developers and open doors to new opportunities.
 
 Start with defining your niche. What are you passionate about? What unique perspective do you bring to the table? Whether it's frontend development, machine learning, or developer tools, having a clear focus helps you build authority in that area.
@@ -323,7 +329,12 @@ Networking is crucial, but it should be authentic. Focus on building genuine rel
 
 Remember that building a personal brand is a marathon, not a sprint. It takes time to establish credibility and build an audience. Be patient, stay consistent, and focus on providing value to others.`,
     category: "Business",
-    tags: ["Career", "Personal Branding", "Networking", "Professional Development"],
+    tags: [
+      "Career",
+      "Personal Branding",
+      "Networking",
+      "Professional Development",
+    ],
     author: {
       id: "3",
       name: "Emily Rodriguez",
@@ -336,7 +347,7 @@ Remember that building a personal brand is a marathon, not a sprint. It takes ti
     readTime: 8,
     isLiked: false,
   },
-]
+];
 
 export const mockComments: Record<string, Comment[]> = {
   "1": [
@@ -400,7 +411,8 @@ export const mockComments: Record<string, Comment[]> = {
   "7": [
     {
       id: "c5",
-      content: "AI tools have definitely changed my workflow. Copilot saves me hours every week on boilerplate code.",
+      content:
+        "AI tools have definitely changed my workflow. Copilot saves me hours every week on boilerplate code.",
       author: {
         id: "4",
         name: "David Kim",
@@ -439,4 +451,4 @@ export const mockComments: Record<string, Comment[]> = {
       isLiked: false,
     },
   ],
-}
+};

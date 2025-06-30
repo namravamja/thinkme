@@ -19,7 +19,7 @@ class BlogCreate(BlogBase):
 class BlogUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     content: Optional[str] = Field(None, min_length=1)
-    excerpt: Optional[str] = Field(None, min_length=1, max_length=500)
+    excerpt: Optional[str] = Field(None, min_length=1)
     category: Optional[str] = Field(None, min_length=1)
     tags: Optional[List[str]] = None
     image: Optional[str] = None

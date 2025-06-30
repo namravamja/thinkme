@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, Upload, Trash2 } from "lucide-react";
+import { useCreateBlogMutation } from "@/services/api/blogApi";
 import type { Blog } from "@/types";
 import toast from "react-hot-toast";
 
@@ -32,25 +32,19 @@ const categories = [
 export function BlogForm({ blog, mode }: BlogFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
     typeof blog?.image === "string" ? blog.image : null
   );
   const [isDragOver, setIsDragOver] = useState(false);
+  const [createBlog, refetch] = useCreateBlogMutation();
 
-  const [formData, setFormData] = useState<{
-    title: string;
-    content: string;
-    excerpt: string;
-    category: string;
-    tags: string[];
-    image: string | null;
-  }>({
+  const [formData, setFormData] = useState({
     title: blog?.title || "",
     content: blog?.content || "",
     excerpt: blog?.excerpt || "",
     category: blog?.category || categories[0],
     tags: blog?.tags || [],
-    image: typeof blog?.image === "string" ? blog.image : null,
   });
 
   const [newTag, setNewTag] = useState("");
@@ -83,23 +77,100 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
     "Library",
   ];
 
+  const getAvailablePredefinedTags = () => {
+    return predefinedTags.filter((tag) => !formData.tags.includes(tag));
+  };
+
+  const addPredefinedTag = (tag: string) => {
+    addTag(tag);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Basic required field validation
+    if (!formData.title.trim()) {
+      toast.error("Title is required");
+      setIsLoading(false);
+      return;
+    }
 
-      if (mode === "create") {
-        toast.success("Blog created successfully!");
-        router.push("/");
-      } else {
-        toast.success("Blog updated successfully!");
-        router.push(`/blogs/${blog?.id}`);
+    if (formData.title.trim().length < 5) {
+      toast.error("Title must be at least 5 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.excerpt.trim()) {
+      toast.error("Excerpt is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.excerpt.trim().length < 10) {
+      toast.error("Excerpt must be at least 10 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.content.trim()) {
+      toast.error("Content is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.content.trim().length < 50) {
+      toast.error("Content must be at least 50 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.category) {
+      toast.error("Category is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.tags.length) {
+      toast.error("At least one tag is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!imageFile && mode === "create") {
+      toast.error("Featured image is required");
+      setIsLoading(false);
+      return;
+    }
+
+    // Check image format if a file is selected
+    if (imageFile) {
+      const validTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!validTypes.includes(imageFile.type)) {
+        toast.error("Image must be in JPG, PNG, or WEBP format");
+        setIsLoading(false);
+        return;
       }
-    } catch (err: any) {
-      toast.error("Error saving blog");
+    }
+
+    const form = new FormData();
+    form.append("title", formData.title.trim());
+    form.append("content", formData.content.trim());
+    form.append("excerpt", formData.excerpt.trim());
+    form.append("category", formData.category);
+    formData.tags.forEach((tag) => form.append("tags", tag));
+    if (imageFile) {
+      form.append("image", imageFile);
+    }
+
+    try {
+      await createBlog(form).unwrap();
+      toast.success("Blog created successfully!");
+      router.push("/my-blogs");
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error creating blog");
     } finally {
       setIsLoading(false);
     }
@@ -116,15 +187,6 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
     }
   };
 
-  const addPredefinedTag = (tag: string) => {
-    addTag(tag);
-    // Don't close the dropdown automatically - let user close it manually
-  };
-
-  const getAvailablePredefinedTags = () => {
-    return predefinedTags.filter((tag) => !formData.tags.includes(tag));
-  };
-
   const removeTag = (tagToRemove: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -138,7 +200,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setImagePreview(result);
-        setFormData((prev) => ({ ...prev, image: result }));
+        setImageFile(file);
       };
       reader.readAsDataURL(file);
     } else {
@@ -148,18 +210,14 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      handleImageUpload(file);
-    }
+    if (file) handleImageUpload(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) {
-      handleImageUpload(file);
-    }
+    if (file) handleImageUpload(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -174,7 +232,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
 
   const removeImage = () => {
     setImagePreview(null);
-    setFormData((prev) => ({ ...prev, image: null }));
+    setImageFile(null);
   };
 
   return (
@@ -220,7 +278,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
                 <div className="relative group">
                   <img
                     src={imagePreview}
-                    alt="Blog preview"
+                    alt="Preview"
                     className="w-full h-48 object-cover rounded-md border"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
@@ -255,7 +313,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
                     Drop image here or click to browse
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Supports JPG, PNG, GIF up to 5MB
+                    Supports JPG, PNG, WEBP
                   </p>
                   <input
                     id="image-upload"
@@ -310,7 +368,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
                     onChange={(e) => setNewTag(e.target.value)}
                     onFocus={() => setShowPredefinedTags(true)}
                     placeholder="Add a tag..."
-                    onKeyPress={(e) =>
+                    onKeyDown={(e) =>
                       e.key === "Enter" && (e.preventDefault(), addTag())
                     }
                   />
@@ -318,20 +376,12 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
                     type="button"
                     onClick={() => addTag()}
                     variant="outline"
+                    className="cursor-pointer"
                   >
                     Add
                   </Button>
                 </div>
 
-                {/* Click outside to close */}
-                {showPredefinedTags && (
-                  <div
-                    className="fixed inset-0 z-0"
-                    onClick={() => setShowPredefinedTags(false)}
-                  />
-                )}
-
-                {/* Predefined Tags Dropdown */}
                 {showPredefinedTags &&
                   getAvailablePredefinedTags().length > 0 && (
                     <div className="absolute top-full left-0 right-0 z-20 bg-background border border-input rounded-md shadow-lg max-h-40 overflow-y-auto mt-1">
@@ -370,33 +420,31 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
                   )}
               </div>
 
-              {/* Selected Tags Display */}
               {formData.tags.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Selected Tags:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        {tag}
-                        <X
-                          className="h-3 w-3 cursor-pointer"
-                          onClick={() => removeTag(tag)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {tag}
+                      <X
+                        className="h-3 w-3 cursor-pointer"
+                        onClick={() => removeTag(tag)}
+                      />
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="cursor-pointer"
+              >
                 {isLoading
                   ? "Saving..."
                   : mode === "create"
@@ -406,6 +454,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
               <Button
                 type="button"
                 variant="outline"
+                className="cursor-pointer"
                 onClick={() => router.back()}
               >
                 Cancel

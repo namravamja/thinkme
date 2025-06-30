@@ -5,7 +5,7 @@ const BASE_API_URL = "http://localhost:8000";
 export const BlogApi = createApi({
   reducerPath: "blogApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_API_URL}/blogs`, // matches FastAPI routes like "/blogs/"
+    baseUrl: `${BASE_API_URL}`, // matches FastAPI routes like "/blogs/"
     credentials: "include", // include cookies like access_token
   }),
   tagTypes: ["Blog"],
@@ -14,7 +14,7 @@ export const BlogApi = createApi({
     // ✅ Create Blog (POST /blogs/)
     createBlog: builder.mutation({
       query: (formData) => ({
-        url: "/",
+        url: "/create",
         method: "POST",
         body: formData,
       }),
@@ -24,29 +24,30 @@ export const BlogApi = createApi({
     // ✅ Update Blog (PUT /blogs/{id})
     updateBlog: builder.mutation({
       query: ({ blogId, formData }) => ({
-        url: `/${blogId}`,
+        url: `/update/${blogId}`,
         method: "PUT",
         body: formData,
       }),
       invalidatesTags: ["Blog"],
     }),
 
-    // ✅ Delete Blog (DELETE /blogs/{id})
+    getUserBlogs: builder.query({
+      query: () => `/my-blogs`,
+    }),
+
     deleteBlog: builder.mutation({
       query: (blogId) => ({
-        url: `/${blogId}`,
+        url: `/delete/${blogId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Blog"],
     }),
 
-    // ✅ Optional - Get single blog
     getBlog: builder.query({
-      query: (blogId) => `/${blogId}`,
+      query: (blogId) => `/get/${blogId}`,
       providesTags: ["Blog"],
     }),
 
-    // ✅ Optional - Get all blogs
     getBlogs: builder.query({
       query: () => `/list`, // Adjust if needed
       providesTags: ["Blog"],
@@ -59,5 +60,6 @@ export const {
   useUpdateBlogMutation,
   useDeleteBlogMutation,
   useGetBlogQuery,
+  useGetUserBlogsQuery,
   useGetBlogsQuery,
 } = BlogApi;

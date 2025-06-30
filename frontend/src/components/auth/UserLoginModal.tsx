@@ -11,51 +11,114 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import toast from "react-hot-toast";
-// import { useLoginMutation } from "@/services/api/authApi";
+import { useAuthModal } from "@/components/provider/auth-model-provider";
+import { useLoginMutation } from "@/services/api/authApi";
+import { useGetCurrentUserQuery } from "@/services/api/userApi";
 
 interface UserLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin?: (email: string, password: string) => Promise<void>; // Optional for backward compatibility
-  isLoading?: boolean; // Optional for backward compatibility
+  onLogin?: (email: string, password: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export default function UserLoginModal({
   isOpen,
   onClose,
-  onLogin, // Keep for backward compatibility but won't be used
-  isLoading: externalIsLoading, // Rename to avoid conflict
+  onLogin,
+  isLoading: externalIsLoading,
 }: UserLoginModalProps) {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  // const { openUserSignup } = useAuthModal();
-  // const [login, { isLoading }] = useLoginMutation();
-  const isLoading = false;
+  const [loginError, setLoginError] = useState<string>("");
+
+  const { openSignup } = useAuthModal();
+  const [login, { isLoading: isLoginLoading, error: loginMutationError }] =
+    useLoginMutation();
+
+  const isLoading = isLoginLoading || externalIsLoading || false;
 
   const handleClose = () => {
     onClose();
     setLoginData({ email: "", password: "" });
+    setLoginError("");
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [shouldFetchUser, setShouldFetchUser] = useState(false);
+
+  const { refetch: refetchUser } = useGetCurrentUserQuery(undefined, {
+    skip: !shouldFetchUser,
+  });
+
+  useEffect(() => {
+    if (shouldFetchUser) {
+      refetchUser().then(() => {
+        // Reset the fetch trigger after successful refetch
+        setShouldFetchUser(false);
+      });
+    }
+  }, [shouldFetchUser, refetchUser]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Demo: just close modal
-    handleClose();
+    setLoginError("");
+
+    try {
+      // Perform login
+      await login({
+        email: loginData.email,
+        password: loginData.password,
+      }).unwrap();
+
+      // Trigger user data fetch
+      setShouldFetchUser(true);
+
+      // Call optional onLogin callback if provided
+      if (onLogin) {
+        await onLogin(loginData.email, loginData.password);
+      }
+
+      // Close modal immediately after successful login
+      handleClose();
+
+      // Optional: Show success message
+      // You can uncomment this if you have toast notifications set up
+      // toast.success("Successfully logged in!");
+    } catch (error: any) {
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Login failed. Please try again.";
+      setLoginError(errorMessage);
+      console.error("Login error:", error);
+    }
   };
 
   const handleSignupClick = () => {
     handleClose();
+    openSignup();
   };
 
-  // Handle keyboard shortcuts
+  // Handle ESC key to close modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isOpen && e.key === "Escape") {
         handleClose();
       }
     };
-    document.addEventListener("keydown", handleKeyDown);
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
     return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Clear errors when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setLoginError("");
+      setLoginData({ email: "", password: "" });
+    }
   }, [isOpen]);
 
   return (
@@ -71,6 +134,14 @@ export default function UserLoginModal({
         </DialogHeader>
 
         <form onSubmit={handleLogin} className="space-y-6 mt-6">
+          {(loginError || loginMutationError) && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              {loginError ||
+                (loginMutationError as any)?.data?.message ||
+                "An error occurred during login"}
+            </div>
+          )}
+
           <div className="space-y-3">
             <Label htmlFor="login-email" className="text-sm font-medium">
               Email
@@ -86,19 +157,15 @@ export default function UserLoginModal({
               required
               disabled={isLoading}
               className="h-11"
+              autoComplete="email"
             />
           </div>
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="login-password" className="text-sm font-medium">
                 Password
               </Label>
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
-              >
-                Forgot password?
-              </button>
             </div>
             <Input
               id="login-password"
@@ -114,20 +181,28 @@ export default function UserLoginModal({
               required
               disabled={isLoading}
               className="h-11"
+              autoComplete="current-password"
             />
           </div>
+
           <div className="pt-4">
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full h-11"
+              disabled={isLoading || !loginData.email || !loginData.password}
+            >
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </div>
+
           <div className="text-center pt-2">
             <p className="text-xs text-muted-foreground">
               Don't have an account?
               <button
                 type="button"
                 onClick={handleSignupClick}
-                className="ml-1 text-primary hover:underline"
+                className="ml-1 text-primary hover:underline cursor-pointer"
+                disabled={isLoading}
               >
                 Sign up here
               </button>

@@ -5,11 +5,10 @@ const BASE_API_URL = "http://localhost:8000";
 export const AuthApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_API_URL}`, // assuming your router is mounted at /auth
-    credentials: "include", // send/receive cookies (access_token)
+    baseUrl: `${BASE_API_URL}`,
+    credentials: "include",
   }),
   endpoints: (builder) => ({
-    // ✅ Signup - POST /signup
     signup: builder.mutation({
       query: (userData) => ({
         url: "/signup",

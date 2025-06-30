@@ -11,42 +11,75 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import toast from "react-hot-toast";
-// import { useSignupMutation } from "@/services/api/authApi";
+import { useAuthModal } from "@/components/provider/auth-model-provider";
+import { useSignupMutation } from "@/services/api/authApi"; // Update this import path
 
 interface UserSignupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSignup?: (name: string, email: string, password: string) => Promise<void>; // Optional for backward compatibility
-  isLoading?: boolean; // Optional for backward compatibility
+  onSignup?: (name: string, email: string, password: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export default function UserSignupModal({
   isOpen,
   onClose,
-  onSignup, // Keep for backward compatibility but won't be used
-  isLoading: externalIsLoading, // Rename to avoid conflict
+  onSignup,
+  isLoading: externalIsLoading,
 }: UserSignupModalProps) {
   const [signupData, setSignupData] = useState({
     name: "",
     email: "",
     password: "",
   });
-  const isLoading = false;
+  const [signupError, setSignupError] = useState<string>("");
+  const { openLogin } = useAuthModal();
+
+  // RTK Query mutation hook
+  const [signup, { isLoading: isSignupLoading, error: signupMutationError }] =
+    useSignupMutation();
+
+  const isLoading = isSignupLoading || externalIsLoading || false;
 
   const handleClose = () => {
     onClose();
     setSignupData({ name: "", email: "", password: "" });
+    setSignupError("");
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Demo: just close modal
-    handleClose();
+    setSignupError("");
+
+    try {
+      // Use RTK Query mutation
+      const result = await signup({
+        name: signupData.name,
+        email: signupData.email,
+        password: signupData.password,
+      }).unwrap();
+
+      // Call the optional onSignup prop if provided
+      if (onSignup) {
+        await onSignup(signupData.name, signupData.email, signupData.password);
+      }
+
+      // Success - close modal and reset form
+      handleClose();
+    } catch (error: any) {
+      // Handle signup error
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Signup failed. Please try again.";
+      setSignupError(errorMessage);
+      console.error("Signup error:", error);
+    }
   };
 
   const handleSignInClick = () => {
     handleClose();
+    openLogin();
   };
 
   // Handle keyboard shortcuts
@@ -58,6 +91,13 @@ export default function UserSignupModal({
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Clear error when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSignupError("");
+    }
   }, [isOpen]);
 
   return (
@@ -73,6 +113,15 @@ export default function UserSignupModal({
         </DialogHeader>
 
         <form onSubmit={handleSignup} className="space-y-6 mt-6">
+          {/* Error Message */}
+          {(signupError || signupMutationError) && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              {signupError ||
+                (signupMutationError as any)?.data?.message ||
+                "An error occurred during signup"}
+            </div>
+          )}
+
           <div className="space-y-3">
             <Label htmlFor="signup-name" className="text-sm font-medium">
               Name
@@ -131,7 +180,11 @@ export default function UserSignupModal({
             />
           </div>
           <div className="pt-4">
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full h-11 cursor-pointer"
+              disabled={isLoading}
+            >
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </div>
@@ -141,7 +194,8 @@ export default function UserSignupModal({
               <button
                 type="button"
                 onClick={handleSignInClick}
-                className="ml-1 text-primary hover:underline"
+                className="ml-1 text-primary hover:underline cursor-pointer"
+                disabled={isLoading}
               >
                 Sign in here
               </button>
