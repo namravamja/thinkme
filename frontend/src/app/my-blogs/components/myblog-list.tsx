@@ -6,6 +6,18 @@ import { MyBlogCard } from "@/app/my-blogs/components/myblog-card";
 import { Pagination } from "@/components/common/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  bio?: string;
+  website?: string;
+  twitter?: string;
+  github?: string;
+  linkedin?: string;
+  profile_image?: string;
+}
+
 interface BlogData {
   id: number;
   title: string;
@@ -15,6 +27,7 @@ interface BlogData {
   tags: string[];
   image: string;
   user_id: number;
+  user: User;
   created_at: string;
   updated_at: string | null;
 }
@@ -25,7 +38,7 @@ interface BlogListProps {
   search?: string;
   userId?: string;
   limit?: number;
-  blogs?: BlogData[]; // Accept blogs as prop from RTK Query
+  blogs?: BlogData[];
   isLoading?: boolean;
   error?: any;
 }
@@ -70,7 +83,8 @@ export function MyBlogList({
             blog.title.toLowerCase().includes(searchLower) ||
             blog.content.toLowerCase().includes(searchLower) ||
             blog.excerpt.toLowerCase().includes(searchLower) ||
-            blog.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+            blog.tags.some((tag) => tag.toLowerCase().includes(searchLower)) ||
+            blog.user?.name?.toLowerCase().includes(searchLower)
         );
       }
 
@@ -161,7 +175,7 @@ export function MyBlogList({
             onClick={() => handleBlogClick(blog.id)}
             className="cursor-pointer transform transition-transform hover:scale-105"
           >
-            <MyBlogCard blog={blog} authorName="User" />
+            <MyBlogCard blog={blog} />
           </div>
         ))}
       </div>

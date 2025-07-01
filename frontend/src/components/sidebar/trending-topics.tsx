@@ -1,21 +1,28 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const trendingTopics = [
-  { name: "Web Development", count: 24 },
-  { name: "React", count: 18 },
-  { name: "JavaScript", count: 15 },
-  { name: "UI/UX", count: 12 },
-  { name: "CSS", count: 10 },
-  { name: "TypeScript", count: 8 },
-  { name: "Next.js", count: 7 },
-  { name: "Design", count: 6 },
-]
+  "Web Development",
+  "React",
+  "JavaScript",
+  "UI/UX",
+  "CSS",
+  "TypeScript",
+  "Next.js",
+  "Design",
+];
 
 export function TrendingTopics() {
+  const router = useRouter();
+
+  const handleTopicClick = (topic: string | number | boolean) => {
+    router.push(`/blogs?search=${encodeURIComponent(topic)}&page=1`);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -28,15 +35,16 @@ export function TrendingTopics() {
         <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {trendingTopics.map((topic) => (
             <Badge
-              key={topic.name}
+              key={topic}
               variant="secondary"
               className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs sm:text-sm px-2 py-1"
+              onClick={() => handleTopicClick(topic)}
             >
-              {topic.name} ({topic.count})
+              {topic}
             </Badge>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

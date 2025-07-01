@@ -2,9 +2,9 @@
 
 import { Navbar } from "@/components/navbar/navbar";
 import { BlogList } from "@/app/blogs/components/blog-list";
+import { FeaturedBlogs } from "@/app/blogs/components/featured-blogs";
 import { CategorySidebar } from "@/components/sidebar/category-sidebar";
 import { TrendingTopics } from "@/components/sidebar/trending-topics";
-import { FeaturedBlogs } from "@/app/blogs/components/featured-blogs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from "next/navigation";

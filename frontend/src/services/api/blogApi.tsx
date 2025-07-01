@@ -49,7 +49,7 @@ export const BlogApi = createApi({
     }),
 
     getBlogs: builder.query({
-      query: () => `/list`, // Adjust if needed
+      query: () => `/all`, // Adjust if needed
       providesTags: ["Blog"],
     }),
   }),

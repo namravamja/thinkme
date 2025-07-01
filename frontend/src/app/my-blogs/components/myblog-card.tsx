@@ -8,6 +8,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Clock } from "lucide-react";
 
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  bio?: string;
+  website?: string;
+  twitter?: string;
+  github?: string;
+  linkedin?: string;
+  profile_image?: string;
+}
+
 interface BlogData {
   id: number;
   title: string;
@@ -17,14 +29,13 @@ interface BlogData {
   tags: string[];
   image: string;
   user_id: number;
+  user: User;
   created_at: string;
   updated_at: string | null;
 }
 
 interface BlogCardProps {
   blog: BlogData;
-  authorName?: string;
-  authorAvatar?: string;
 }
 
 // Function to calculate reading time based on content
@@ -37,19 +48,26 @@ const calculateReadTime = (content: string): number => {
 
 // Function to get author initials
 const getAuthorInitials = (name: string): string => {
-  return name
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join("");
+  if (!name || name.trim() === "") return "A"; // Default to "A" for Anonymous
+
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    // Single word - return first letter
+    return words[0].charAt(0).toUpperCase();
+  } else {
+    // Multiple words - return first letter of first two words
+    return words
+      .slice(0, 2)
+      .map((word) => word.charAt(0).toUpperCase())
+      .join("");
+  }
 };
 
-export function MyBlogCard({
-  blog,
-  authorName = "Anonymous",
-  authorAvatar,
-}: BlogCardProps) {
+export function MyBlogCard({ blog }: BlogCardProps) {
   const readTime = calculateReadTime(blog.content);
+  const author = blog.user;
+  const authorName = author?.name || "Anonymous";
+  const authorAvatar = author?.profile_image;
 
   return (
     <Card className="group hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer h-full flex flex-col overflow-hidden border border-border/50 hover:border-blue-500/20 bg-card/50 backdrop-blur-sm">
@@ -68,11 +86,10 @@ export function MyBlogCard({
         <CardHeader className="pb-3 p-4 sm:p-6">
           <div className="flex items-start gap-3 mb-3">
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 ring-2 ring-transparent group-hover:ring-blue-500/20 transition-all duration-200">
-              <AvatarImage
-                src={authorAvatar || "/placeholder.svg"}
-                alt={authorName}
-              />
-              <AvatarFallback className="text-xs sm:text-sm bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+              {authorAvatar ? (
+                <AvatarImage src={authorAvatar} alt={authorName} />
+              ) : null}
+              <AvatarFallback className="text-xs sm:text-sm bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
                 {getAuthorInitials(authorName)}
               </AvatarFallback>
             </Avatar>
@@ -124,7 +141,7 @@ export function MyBlogCard({
             <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
             <span>{readTime} min read</span>
           </div>
-          {blog.updated_at && (
+          {blog.updated_at && blog.updated_at !== blog.created_at && (
             <div className="text-xs text-slate-500 dark:text-slate-500">
               Updated{" "}
               {formatDistanceToNow(new Date(blog.updated_at), {

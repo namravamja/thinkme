@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar/navbar";
@@ -11,65 +11,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import toast from "react-hot-toast";
 import { formatDistanceToNow } from "date-fns";
 import {
-  Edit,
-  Trash2,
   ArrowLeft,
   Clock,
   Share2,
-  MoreVertical,
-  Heart,
+  Globe,
+  Twitter,
+  Github,
+  Linkedin,
+  Calendar,
+  Mail,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { mockBlogs } from "@/components/common/mock-data";
-import type { Blog } from "@/types";
-import { cn } from "@/lib/utils";
+import { useGetBlogQuery } from "@/services/api/blogApi"; // Adjust import path as needed
 
 interface BlogDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function BlogDetailPage({ params }: BlogDetailPageProps) {
-  const [blog, setBlog] = useState<Blog | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      const foundBlog = mockBlogs.find((b) => b.id === params.id);
-      if (foundBlog) {
-        setBlog(foundBlog);
-        setIsLiked(foundBlog.isLiked || false);
-        setLikesCount(foundBlog.likesCount);
-      }
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [params.id]);
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this blog?")) return;
-    setIsDeleting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Blog deleted successfully");
-      router.push("/");
-    }, 1000);
-  };
+  const { id } = use(params);
+  const { data: blog, isLoading, error } = useGetBlogQuery(id);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -89,10 +52,10 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
     }
   };
 
-  const handleLike = () => {
-    const newLiked = !isLiked;
-    setIsLiked(newLiked);
-    setLikesCount((prev) => (newLiked ? prev + 1 : prev - 1));
+  const calculateReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(/\s+/).length;
+    return Math.ceil(wordCount / wordsPerMinute);
   };
 
   if (isLoading) {
@@ -119,7 +82,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
     );
   }
 
-  if (!blog) {
+  if (error || !blog) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -135,15 +98,14 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
     );
   }
 
-  // Auth removed: always allow edit/delete for demo
-  const isAuthor = true;
+  const readTime = calculateReadTime(blog.content);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-6 sm:py-8 max-w-4xl">
         <Button variant="ghost" asChild className="mb-6">
-          <Link href="/">
+          <Link href="/blogs">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to blogs
           </Link>
@@ -151,112 +113,166 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
 
         <article className="prose prose-lg max-w-none">
           <header className="mb-8">
+            {/* Blog Image */}
+            {blog.image && (
+              <div className="mb-6">
+                <img
+                  src={blog.image}
+                  alt={blog.title}
+                  className="w-full h-64 sm:h-96 object-cover rounded-lg"
+                />
+              </div>
+            )}
+
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight text-slate-900 dark:text-slate-100">
               {blog.title}
             </h1>
 
+            {/* Excerpt */}
+            {blog.excerpt && (
+              <p className="text-lg text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                {blog.excerpt}
+              </p>
+            )}
+
             {/* Author Info */}
             <div className="flex items-start justify-between mb-6 gap-4">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
                   <AvatarImage
-                    src={blog.author.avatar || "/placeholder.svg"}
-                    alt={blog.author.name}
+                    src={blog.user.profile_image || "/placeholder.svg"}
+                    alt={blog.user.name}
                   />
-                  <AvatarFallback>
-                    {blog.author.name.charAt(0).toUpperCase()}
+                  <AvatarFallback className="text-lg">
+                    {blog.user.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm sm:text-base truncate text-slate-900 dark:text-slate-100">
-                    {blog.author.name}
+                  <p className="font-medium text-base sm:text-lg text-slate-900 dark:text-slate-100">
+                    {blog.user.name}
                   </p>
+                  {blog.user.bio && (
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                      {blog.user.bio}
+                    </p>
+                  )}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                    <span>
-                      {formatDistanceToNow(new Date(blog.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        Published{" "}
+                        {formatDistanceToNow(new Date(blog.created_at), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </div>
+                    {blog.updated_at !== blog.created_at && (
+                      <>
+                        <span className="hidden sm:inline">•</span>
+                        <div className="flex items-center gap-1">
+                          <span>
+                            Updated{" "}
+                            {formatDistanceToNow(new Date(blog.updated_at), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        </div>
+                      </>
+                    )}
                     <span className="hidden sm:inline">•</span>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-blue-500" />
-                      <span>{blog.readTime} min read</span>
+                      <span>{readTime} min read</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Share Button */}
               <div className="flex items-center gap-2">
-                {/* Desktop Actions */}
-                <div className="hidden sm:flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={handleShare}>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
-                  {isAuthor && (
-                    <>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/edit/${blog.id}`}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    </>
-                  )}
-                </div>
-
-                {/* Mobile Actions */}
-                <div className="sm:hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={handleShare}>
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
-                      {isAuthor && (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/edit/${blog.id}`}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <Button variant="outline" size="sm" onClick={handleShare}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
               </div>
             </div>
 
+            {/* User Social Links */}
+            {(blog.user.website ||
+              blog.user.twitter ||
+              blog.user.github ||
+              blog.user.linkedin ||
+              blog.user.email) && (
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-2">
+                  {blog.user.email && (
+                    <Badge variant="outline" className="text-xs">
+                      <Mail className="h-3 w-3 mr-1" />
+                      {blog.user.email}
+                    </Badge>
+                  )}
+                  {blog.user.website && (
+                    <Badge variant="outline" className="text-xs">
+                      <Globe className="h-3 w-3 mr-1" />
+                      <a
+                        href={blog.user.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        Website
+                      </a>
+                    </Badge>
+                  )}
+                  {blog.user.twitter && (
+                    <Badge variant="outline" className="text-xs">
+                      <Twitter className="h-3 w-3 mr-1" />
+                      <a
+                        href={`https://twitter.com/${blog.user.twitter}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        @{blog.user.twitter}
+                      </a>
+                    </Badge>
+                  )}
+                  {blog.user.github && (
+                    <Badge variant="outline" className="text-xs">
+                      <Github className="h-3 w-3 mr-1" />
+                      <a
+                        href={`https://github.com/${blog.user.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {blog.user.github}
+                      </a>
+                    </Badge>
+                  )}
+                  {blog.user.linkedin && (
+                    <Badge variant="outline" className="text-xs">
+                      <Linkedin className="h-3 w-3 mr-1" />
+                      <a
+                        href={`https://linkedin.com/in/${blog.user.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {blog.user.linkedin}
+                      </a>
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Tags and Category */}
-            <div className="flex flex-wrap gap-2 mb-6 sm:mb-8">
+            <div className="flex flex-wrap gap-2 mb-8">
               <Badge variant="secondary" className="text-xs sm:text-sm">
                 {blog.category}
               </Badge>
-              {blog.tags.map((tag) => (
+              {blog.tags?.map((tag: string) => (
                 <Badge
                   key={tag}
                   variant="outline"
@@ -265,30 +281,6 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                   {tag}
                 </Badge>
               ))}
-            </div>
-
-            {/* Engagement Bar */}
-            <div className="flex items-center gap-4 sm:gap-6 py-3 sm:py-4 border-y">
-              <Button
-                variant="ghost"
-                size="default"
-                onClick={handleLike}
-                className={cn(
-                  "flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all duration-200 cursor-pointer hover:scale-105",
-                  isLiked && "text-red-500"
-                )}
-              >
-                <Heart
-                  className={cn(
-                    "h-4 w-4 transition-all duration-200",
-                    isLiked && "fill-current scale-110"
-                  )}
-                />
-                <span className="text-sm font-medium">{likesCount}</span>
-              </Button>
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <span className="text-sm">{blog.commentsCount} comments</span>
-              </div>
             </div>
           </header>
 
@@ -299,12 +291,33 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
 
           <Separator className="my-8 sm:my-12" />
 
-          {/* Comments Section Placeholder */}
-          <div className="text-center py-8">
-            <p className="text-slate-600 dark:text-slate-400">
-              Comments section coming soon...
-            </p>
-          </div>
+          {/* Author Bio Section */}
+          {blog.user.bio && (
+            <>
+              <div className="mb-8">
+                <div className="flex items-start gap-4">
+                  <Avatar className="h-12 w-12 flex-shrink-0">
+                    <AvatarImage
+                      src={blog.user.profile_image || "/placeholder.svg"}
+                      alt={blog.user.name}
+                    />
+                    <AvatarFallback>
+                      {blog.user.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">
+                      About {blog.user.name}
+                    </h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {blog.user.bio}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <Separator className="my-8" />
+            </>
+          )}
         </article>
       </div>
     </div>

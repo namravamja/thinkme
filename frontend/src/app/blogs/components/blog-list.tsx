@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BlogCard } from "@/app/blogs/components/blog-card";
 import { Pagination } from "@/components/common/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import { mockBlogs } from "@/components/common/mock-data";
+import { useGetBlogsQuery } from "@/services/api/blogApi";
 
 interface BlogListProps {
   page?: number;
@@ -15,6 +15,25 @@ interface BlogListProps {
   limit?: number;
 }
 
+// No need to transform - pass data directly to BlogCard in the expected format
+const processApiData = (apiBlogs: any[]) => {
+  return apiBlogs.map((blog) => ({
+    ...blog,
+    // Ensure all required fields have defaults
+    title: blog.title || "Untitled",
+    content: blog.content || "",
+    excerpt: blog.excerpt || "No excerpt available",
+    category: blog.category || "Uncategorized",
+    tags: blog.tags || [],
+    user: blog.user || {
+      id: 0,
+      name: "Unknown Author",
+      email: "",
+      profile_image: "",
+    },
+  }));
+};
+
 export function BlogList({
   page = 1,
   category,
@@ -23,61 +42,60 @@ export function BlogList({
   limit = 10,
 }: BlogListProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<{
-    blogs: any[];
-    total: number;
-    page: number;
-    totalPages: number;
-  } | null>(null);
+  const { data: apiData, isLoading, error } = useGetBlogsQuery(undefined);
 
-  const handleBlogClick = (blogId: string) => {
-    router.push(`/my-blogs/${blogId}`);
+  // Memoized filtered and paginated data
+  const processedData = useMemo(() => {
+    if (!apiData) return null;
+
+    let filteredBlogs = processApiData(apiData);
+
+    // Filter by category
+    if (category) {
+      filteredBlogs = filteredBlogs.filter(
+        (blog) => blog.category === category
+      );
+    }
+
+    // Filter by search (title, excerpt, content, tags, and author name)
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredBlogs = filteredBlogs.filter(
+        (blog) =>
+          blog.title.toLowerCase().includes(searchLower) ||
+          blog.excerpt.toLowerCase().includes(searchLower) ||
+          blog.content.toLowerCase().includes(searchLower) ||
+          blog.tags.some((tag: string) =>
+            tag.toLowerCase().includes(searchLower)
+          ) ||
+          (blog.user?.name || "").toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filter by user ID
+    if (userId) {
+      filteredBlogs = filteredBlogs.filter(
+        (blog) =>
+          blog.user_id?.toString() === userId ||
+          blog.user?.id?.toString() === userId
+      );
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedBlogs = filteredBlogs.slice(startIndex, endIndex);
+
+    return {
+      blogs: paginatedBlogs,
+      total: filteredBlogs.length,
+      page,
+      totalPages: Math.ceil(filteredBlogs.length / limit),
+    };
+  }, [apiData, page, category, search, userId, limit]);
+
+  const handleBlogClick = (blogId: string | number) => {
+    router.push(`/blogs/${blogId}`);
   };
-
-  useEffect(() => {
-    setIsLoading(true);
-
-    // Simulate API call
-    const timer = setTimeout(() => {
-      let filteredBlogs = [...mockBlogs];
-
-      if (category) {
-        filteredBlogs = filteredBlogs.filter(
-          (blog) => blog.category === category
-        );
-      }
-
-      if (search) {
-        filteredBlogs = filteredBlogs.filter(
-          (blog) =>
-            blog.title.toLowerCase().includes(search.toLowerCase()) ||
-            blog.content.toLowerCase().includes(search.toLowerCase()) ||
-            blog.excerpt.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-
-      if (userId) {
-        filteredBlogs = filteredBlogs.filter(
-          (blog) => blog.author.id === userId
-        );
-      }
-
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedBlogs = filteredBlogs.slice(startIndex, endIndex);
-
-      setData({
-        blogs: paginatedBlogs,
-        total: filteredBlogs.length,
-        page,
-        totalPages: Math.ceil(filteredBlogs.length / limit),
-      });
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [page, category, search, userId, limit]);
 
   if (isLoading) {
     return (
@@ -104,7 +122,17 @@ export function BlogList({
     );
   }
 
-  if (!data?.blogs.length) {
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 dark:text-red-400">
+          Error loading blogs. Please try again.
+        </p>
+      </div>
+    );
+  }
+
+  if (!processedData?.blogs.length) {
     return (
       <div className="text-center py-12">
         <p className="text-slate-600 dark:text-slate-400">No blogs found.</p>
@@ -115,7 +143,7 @@ export function BlogList({
   return (
     <div className="space-y-8">
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-        {data.blogs.map((blog) => (
+        {processedData.blogs.map((blog) => (
           <div
             key={blog.id}
             onClick={() => handleBlogClick(blog.id)}
@@ -127,8 +155,11 @@ export function BlogList({
       </div>
 
       {/* Only show pagination if limit is not set (i.e., not on homepage) */}
-      {limit === 10 && data.totalPages > 1 && (
-        <Pagination currentPage={data.page} totalPages={data.totalPages} />
+      {limit === 10 && processedData.totalPages > 1 && (
+        <Pagination
+          currentPage={processedData.page}
+          totalPages={processedData.totalPages}
+        />
       )}
     </div>
   );

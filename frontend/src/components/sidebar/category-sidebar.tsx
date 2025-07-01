@@ -1,20 +1,34 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const categories = ["Technology", "Design", "Business", "Health", "Science", "Travel", "Food", "Lifestyle"]
+const categories = [
+  "Technology",
+  "Design",
+  "Business",
+  "Health",
+  "Science",
+  "Travel",
+  "Food",
+  "Lifestyle",
+];
 
 interface CategorySidebarProps {
-  selectedCategory?: string
-  onCategoryChange: (category?: string) => void
+  selectedCategory?: string;
+  onCategoryChange: (category?: string) => void;
 }
 
-export function CategorySidebar({ selectedCategory, onCategoryChange }: CategorySidebarProps) {
+export function CategorySidebar({
+  selectedCategory,
+  onCategoryChange,
+}: CategorySidebarProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base sm:text-lg text-slate-900 dark:text-slate-100">Categories</CardTitle>
+        <CardTitle className="text-base sm:text-lg text-slate-900 dark:text-slate-100">
+          Categories
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1 sm:space-y-2">
         <Button
@@ -36,5 +50,5 @@ export function CategorySidebar({ selectedCategory, onCategoryChange }: Category
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }

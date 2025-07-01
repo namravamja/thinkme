@@ -129,6 +129,12 @@ async def update_blog(
     return blog
 
 
+@router.get("/all", response_model=List[BlogRead])
+def get_all_blogs(db: Session = Depends(get_db)):
+    blogs = db.query(Blog).order_by(Blog.id.desc()).all()
+    return blogs
+
+
 @router.get("/get/{blog_id}", response_model=BlogRead)
 def get_blog_by_id(
     blog_id: int,

@@ -1,22 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { BlogCard } from "@/app/blogs/components/blog-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { mockBlogs } from "@/components/common/mock-data";
+import { useGetBlogsQuery } from "@/services/api/blogApi";
+import type { Blog } from "@/types";
 
 export function FeaturedBlogs() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [blogs, setBlogs] = useState(mockBlogs.slice(0, 3));
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const { data: blogs, isLoading, error } = useGetBlogsQuery(undefined);
 
   if (isLoading) {
     return (
@@ -43,9 +33,21 @@ export function FeaturedBlogs() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">
+          Error loading blogs. Please try again later.
+        </p>
+      </div>
+    );
+  }
+
+  const featuredBlogs = blogs?.slice(0, 3) || [];
+
   return (
     <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {blogs.map((blog) => (
+      {featuredBlogs.map((blog: Blog) => (
         <BlogCard key={blog.id} blog={blog} />
       ))}
     </div>

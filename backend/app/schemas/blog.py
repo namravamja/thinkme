@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import List, Optional
+from app.schemas.user import UserRead
 
 
 class BlogBase(BaseModel):
@@ -28,6 +29,7 @@ class BlogUpdate(BaseModel):
 class BlogRead(BlogBase):
     id: int
     user_id: int
+    user: UserRead
     created_at: datetime
     updated_at: Optional[datetime] = None
 

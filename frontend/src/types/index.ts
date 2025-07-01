@@ -1,31 +1,27 @@
 export interface User {
-  profile_image: null;
-  id: string;
-  name: string;
+  id: number;
   email: string;
-  avatar?: string;
-  createdAt: string;
+  name: string;
+  bio?: string;
+  website?: string;
+  twitter?: string;
+  github?: string;
+  linkedin?: string;
+  profile_image?: string;
 }
 
 export interface Blog {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  category: string;
-  image: string[];
-  tags: string[];
-  author: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  likesCount: number;
-  commentsCount: number;
-  isLiked?: boolean;
-  readTime: number;
+  title?: string;
+  content?: string;
+  excerpt?: string;
+  category?: string;
+  tags?: string[];
+  image?: string;
+  id: number;
+  user_id?: number;
+  user?: User;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface BlogsResponse {
