@@ -61,7 +61,7 @@ const formatSafeDate = (dateString?: string): string => {
   try {
     return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
-    return "Unknown date";
+    return "Unknown date" + error;
   }
 };
 

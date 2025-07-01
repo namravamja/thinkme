@@ -23,7 +23,6 @@ export default function MyBlogsPage() {
     isLoading,
     error,
     refetch,
-    isFetching,
   } = useGetUserBlogsQuery(undefined, {
     skip: !isAuthenticated, // Skip the query if not authenticated
     refetchOnMountOrArgChange: true,

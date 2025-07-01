@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthModal } from "@/components/provider/auth-model-provider";
 import { useLoginMutation } from "@/services/api/authApi";
 import { useGetCurrentUserQuery } from "@/services/api/userApi";
+import toast from "react-hot-toast";
 
 interface UserLoginModalProps {
   isOpen: boolean;
@@ -82,12 +83,23 @@ export default function UserLoginModal({
 
       // Optional: Show success message
       // You can uncomment this if you have toast notifications set up
-      // toast.success("Successfully logged in!");
-    } catch (error: any) {
-      const errorMessage =
-        error?.data?.message ||
-        error?.message ||
-        "Login failed. Please try again.";
+      toast.success("Successfully logged in!");
+    } catch (error: unknown) {
+      let errorMessage = "Login failed. Please try again.";
+      if (typeof error === "object" && error !== null) {
+        if (
+          "data" in error &&
+          typeof (error as { data?: { message?: string } }).data?.message ===
+            "string"
+        ) {
+          errorMessage = (error as { data: { message: string } }).data.message;
+        } else if (
+          "message" in error &&
+          typeof (error as { message?: string }).message === "string"
+        ) {
+          errorMessage = (error as { message: string }).message;
+        }
+      }
       setLoginError(errorMessage);
       console.error("Login error:", error);
     }
@@ -111,6 +123,7 @@ export default function UserLoginModal({
     }
 
     return () => document.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Clear errors when modal closes
@@ -137,8 +150,14 @@ export default function UserLoginModal({
           {(loginError || loginMutationError) && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
               {loginError ||
-                (loginMutationError as any)?.data?.message ||
-                "An error occurred during login"}
+                (typeof loginMutationError === "object" &&
+                loginMutationError !== null &&
+                "data" in loginMutationError &&
+                typeof (loginMutationError as { data?: { message?: string } })
+                  .data?.message === "string"
+                  ? (loginMutationError as { data: { message: string } }).data
+                      .message
+                  : "An error occurred during login")}
             </div>
           )}
 
@@ -197,7 +216,7 @@ export default function UserLoginModal({
 
           <div className="text-center pt-2">
             <p className="text-xs text-muted-foreground">
-              Don't have an account?
+              Don&apos;t have an account?
               <button
                 type="button"
                 onClick={handleSignupClick}

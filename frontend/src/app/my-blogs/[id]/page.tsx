@@ -40,19 +40,6 @@ import {
 import { useAuth } from "@/hooks/useAuth"; // Import the useAuth hook
 import toast from "react-hot-toast";
 
-interface BlogData {
-  id: number;
-  title: string;
-  content: string;
-  excerpt: string;
-  category: string;
-  tags: string[];
-  image: string;
-  user_id: number;
-  created_at: string;
-  updated_at: string | null;
-}
-
 const categories = [
   "Technology",
   "Design",
@@ -111,7 +98,7 @@ export default function MyBlogDetailPage() {
   const blogId = params?.id as string;
 
   // Use the useAuth hook for authentication
-  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const {
     data: blog,
@@ -631,6 +618,7 @@ export default function MyBlogDetailPage() {
                   {imagePreview ? (
                     <div className="relative group">
                       <div className="relative h-64 sm:h-80 lg:h-96 overflow-hidden rounded-lg border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={imagePreview}
                           alt="Blog preview"
@@ -685,6 +673,7 @@ export default function MyBlogDetailPage() {
                 </div>
               ) : blog.image ? (
                 <div className="relative h-64 sm:h-80 lg:h-96 overflow-hidden rounded-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={blog.image}
                     alt={blog.title}

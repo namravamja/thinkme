@@ -40,7 +40,7 @@ interface BlogListProps {
   limit?: number;
   blogs?: BlogData[];
   isLoading?: boolean;
-  error?: any;
+  error?: { message?: string } | null;
 }
 
 export function MyBlogList({

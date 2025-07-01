@@ -53,7 +53,7 @@ export default function UserSignupModal({
 
     try {
       // Use RTK Query mutation
-      const result = await signup({
+      await signup({
         name: signupData.name,
         email: signupData.email,
         password: signupData.password,
@@ -66,12 +66,23 @@ export default function UserSignupModal({
 
       // Success - close modal and reset form
       handleClose();
-    } catch (error: any) {
+    } catch (error) {
       // Handle signup error
-      const errorMessage =
-        error?.data?.message ||
-        error?.message ||
-        "Signup failed. Please try again.";
+      let errorMessage = "Signup failed. Please try again.";
+      if (typeof error === "object" && error !== null) {
+        if (
+          "data" in error &&
+          typeof (error as { data?: { message?: string } }).data?.message ===
+            "string"
+        ) {
+          errorMessage = (error as { data: { message: string } }).data.message;
+        } else if (
+          "message" in error &&
+          typeof (error as { message?: string }).message === "string"
+        ) {
+          errorMessage = (error as { message: string }).message;
+        }
+      }
       setSignupError(errorMessage);
       console.error("Signup error:", error);
     }
@@ -91,6 +102,7 @@ export default function UserSignupModal({
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Clear error when modal closes
@@ -117,8 +129,14 @@ export default function UserSignupModal({
           {(signupError || signupMutationError) && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
               {signupError ||
-                (signupMutationError as any)?.data?.message ||
-                "An error occurred during signup"}
+                (typeof signupMutationError === "object" &&
+                signupMutationError !== null &&
+                "data" in signupMutationError &&
+                typeof (signupMutationError as { data?: { message?: string } })
+                  .data?.message === "string"
+                  ? (signupMutationError as { data: { message: string } }).data
+                      .message
+                  : "An error occurred during signup")}
             </div>
           )}
 

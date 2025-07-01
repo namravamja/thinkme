@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  PenTool,
   Menu,
   X,
   BookOpen,
@@ -27,9 +26,7 @@ export function Navbar() {
 
   const {
     data: userData,
-    isLoading: userLoading,
     isError: isUserError,
-    error: userError,
     refetch: refetchUser,
   } = useGetCurrentUserQuery(undefined, {
     refetchOnMountOrArgChange: true,

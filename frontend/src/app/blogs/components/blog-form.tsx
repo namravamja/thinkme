@@ -12,6 +12,7 @@ import { X, Upload, Trash2 } from "lucide-react";
 import { useCreateBlogMutation } from "@/services/api/blogApi";
 import type { Blog } from "@/types";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface BlogFormProps {
   blog?: Blog;
@@ -37,7 +38,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
     typeof blog?.image === "string" ? blog.image : null
   );
   const [isDragOver, setIsDragOver] = useState(false);
-  const [createBlog, refetch] = useCreateBlogMutation();
+  const [createBlog] = useCreateBlogMutation();
 
   const [formData, setFormData] = useState({
     title: blog?.title || "",
@@ -89,38 +90,19 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    // Basic required field validation
-    if (!formData.title.trim()) {
-      toast.error("Title is required");
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.title.trim().length < 5) {
+    if (!formData.title.trim() || formData.title.length < 5) {
       toast.error("Title must be at least 5 characters long");
       setIsLoading(false);
       return;
     }
 
-    if (!formData.excerpt.trim()) {
-      toast.error("Excerpt is required");
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.excerpt.trim().length < 10) {
+    if (!formData.excerpt.trim() || formData.excerpt.length < 10) {
       toast.error("Excerpt must be at least 10 characters long");
       setIsLoading(false);
       return;
     }
 
-    if (!formData.content.trim()) {
-      toast.error("Content is required");
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.content.trim().length < 50) {
+    if (!formData.content.trim() || formData.content.length < 50) {
       toast.error("Content must be at least 50 characters long");
       setIsLoading(false);
       return;
@@ -144,11 +126,10 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
       return;
     }
 
-    // Check image format if a file is selected
     if (imageFile) {
       const validTypes = ["image/jpeg", "image/png", "image/webp"];
       if (!validTypes.includes(imageFile.type)) {
-        toast.error("Image must be in JPG, PNG, or WEBP format");
+        toast.error("Image must be JPG, PNG, or WEBP");
         setIsLoading(false);
         return;
       }
@@ -160,15 +141,13 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
     form.append("excerpt", formData.excerpt.trim());
     form.append("category", formData.category);
     formData.tags.forEach((tag) => form.append("tags", tag));
-    if (imageFile) {
-      form.append("image", imageFile);
-    }
+    if (imageFile) form.append("image", imageFile);
 
     try {
       await createBlog(form).unwrap();
       toast.success("Blog created successfully!");
       router.push("/my-blogs");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("Error creating blog");
     } finally {
@@ -276,9 +255,11 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
               <Label>Featured Image</Label>
               {imagePreview ? (
                 <div className="relative group">
-                  <img
+                  <Image
                     src={imagePreview}
                     alt="Preview"
+                    width={800}
+                    height={300}
                     className="w-full h-48 object-cover rounded-md border"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
@@ -440,11 +421,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
             </div>
 
             <div className="flex gap-4">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="cursor-pointer"
-              >
+              <Button type="submit" disabled={isLoading}>
                 {isLoading
                   ? "Saving..."
                   : mode === "create"
@@ -454,7 +431,6 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="cursor-pointer"
                 onClick={() => router.back()}
               >
                 Cancel

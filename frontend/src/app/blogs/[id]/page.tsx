@@ -1,7 +1,5 @@
 "use client";
 
-import { use } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar/navbar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import toast from "react-hot-toast";
 import { formatDistanceToNow } from "date-fns";
+import { use } from "react";
 import {
   ArrowLeft,
   Clock,
@@ -25,9 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { useGetBlogQuery } from "@/services/api/blogApi"; // Adjust import path as needed
 
 interface BlogDetailPageProps {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }
 
 export default function BlogDetailPage({ params }: BlogDetailPageProps) {
@@ -116,6 +113,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
             {/* Blog Image */}
             {blog.image && (
               <div className="mb-6">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={blog.image}
                   alt={blog.title}

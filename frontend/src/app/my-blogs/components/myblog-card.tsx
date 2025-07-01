@@ -75,6 +75,7 @@ export function MyBlogCard({ blog }: BlogCardProps) {
         {/* Blog Image */}
         {blog.image && (
           <div className="relative h-48 sm:h-56 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={blog.image}
               alt={blog.title}

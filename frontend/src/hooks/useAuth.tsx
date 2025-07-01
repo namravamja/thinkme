@@ -6,8 +6,8 @@ import { useAuthModal } from "@/components/provider/auth-model-provider";
 
 interface ApiError {
   status?: number;
-  data?: any;
-  [key: string]: any;
+  data?: unknown;
+  [key: string]: unknown;
 }
 
 interface UserData {
