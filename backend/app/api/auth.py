@@ -47,9 +47,9 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
         key="access_token",
         value=token,
         httponly=True,
-        max_age=60 * 60 * 24,
-        secure=False,
-        samesite="Lax",
+        max_age=7 * 24 * 60 * 60 * 1000,
+        secure=True,
+        samesite="none",
     )
 
     return {"message": "Login successful"}
