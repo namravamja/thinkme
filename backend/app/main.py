@@ -10,7 +10,7 @@ app = FastAPI()
 
 
 # CORS (Allow Next.js frontend to communicate with FastAPI backend)
-origins = ["http://localhost:3000", "https://thinkkme.vercel.app"]  # local Next.js
+origins = ["http://localhost:3000", "https://thinkkme.vercel.app/"]  # local Next.js
 
 app.add_middleware(
     CORSMiddleware,
