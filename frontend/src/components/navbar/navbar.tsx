@@ -19,6 +19,7 @@ import {
 import { useAuthModal } from "@/components/provider/auth-model-provider";
 import { useGetCurrentUserQuery } from "@/services/api/userApi";
 import { useLogoutMutation } from "@/services/api/authApi";
+import { useRouter } from "next/navigation";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -31,6 +32,8 @@ export function Navbar() {
   } = useGetCurrentUserQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
+
+  const router = useRouter();
 
   // Add logout mutation hook
   const [logout, { isLoading: logoutLoading }] = useLogoutMutation();
@@ -49,14 +52,11 @@ export function Navbar() {
       setIsDropdownOpen(false);
       setIsMobileMenuOpen(false);
 
-      // Call the logout mutation
       await logout(undefined).unwrap();
 
-      // Force refetch user data to clear cache and update the UI state
       await refetchUser();
 
-      // Optional: If you're using Redux Toolkit Query, you might want to invalidate the cache
-      // dispatch(userApi.util.invalidateTags(['User']));
+      router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
